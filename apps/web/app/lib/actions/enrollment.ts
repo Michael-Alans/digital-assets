@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { apiFetch } from "../api/client";
-import { ENDPOINTS } from "@app/lib/api/endpoints";
+import { ENDPOINTS } from "@/app/lib/api/endpoints";
 import { revalidatePath } from "next/cache";
 
 export async function getMyAssets() {
