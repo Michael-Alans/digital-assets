@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
   app.enableCors({
-  origin: ['http://localhost:3000', 'https://digital-assets-web.vercel.app/'], // Use your actual frontend URL
+  origin: ['http://localhost:3000', 'https://digital-assets-web.vercel.app'], // Use your actual frontend URL
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   credentials: true,
   allowedHeaders: 'Content-Type, Authorization', // Explicitly allow this
