@@ -20,9 +20,10 @@ import { ClerkAuthGuard } from 'src/auth/guards/clerk-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { Role, AssetStatus } from '@design-assets/db';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { S3Service } from 'src/s3/s3.service';
 import { AssetsService } from './assets.service';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('assets')
 export class AssetsController {
@@ -111,13 +112,14 @@ async claim(@Param('id') assetId: string, @Req() req) {
 // apps/api/src/assets/assets.controller.ts
 
 @Get(':id')
+@Public()
 @UseGuards(ClerkAuthGuard) 
 async findOne(@Param('id') id: string, @Req() req) {
   // We call findOnePublic because it includes:
   // 1. Clerk Hydration (Real names/images)
   // 2. Ownership check (isOwned status)
   // 3. Proper Includes (files, tags, creatorProfile)
-  return this.assetsService.findOnePublic(id, req.user.id);
+  return this.assetsService.findOnePublic(id, req.user?.id);
 }
 
   // PROTECTED: Publish

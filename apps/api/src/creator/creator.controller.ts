@@ -1,7 +1,7 @@
 import { Controller, Post, Get, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { ClerkAuthGuard } from '../auth/guards/clerk-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@design-assets/db';
 import { UsersService } from '../users/users.service';
 

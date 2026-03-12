@@ -2,7 +2,7 @@ import { FileKind, Role } from "@design-assets/db";
 import { BadRequestException, Body, Controller, ForbiddenException, Post, Req, UseGuards } from "@nestjs/common";
 import { ClerkAuthGuard } from "src/auth/guards/clerk-auth.guard";
 import { RolesGuard } from "src/auth/guards/roles.guard";
-import { Roles } from "src/auth/roles.decorator";
+import { Roles } from "src/auth/decorators/roles.decorator";
 import { PrismaService } from "src/prisma/prisma.service";
 import { S3Service } from "src/s3/s3.service";
 
