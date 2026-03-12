@@ -45,7 +45,7 @@ function HomePageContent() {
             <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
               {!isCreator ? (
                 <Link 
-                  href="/creator/onboarding"
+                  href="/onboarding"
                   className="bg-primary text-white rounded-full font-semibold py-3 px-8 hover:opacity-90 transition-all shadow-md flex items-center gap-2"
                 >
                   Become a Creator
