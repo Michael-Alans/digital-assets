@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AssetStatus } from '@design-assets/db';
 import { createClerkClient } from '@clerk/clerk-sdk-node';
@@ -214,13 +214,34 @@ export class AssetsService {
    * DELETE: Remove asset
    */
   async remove(id: string, creatorProfileId: string) {
-    const asset = await this.prisma.asset.findUnique({ where: { id } });
-    
-    if (!asset) throw new NotFoundException('Asset not found');
-    if (asset.creatorProfileId !== creatorProfileId) {
-      throw new ForbiddenException('Not your asset');
-    }
+  const asset = await this.prisma.asset.findUnique({
+    where: { id },
+    include: { _count: { select: { ownerships: true } } }
+  });
 
-    return this.prisma.asset.delete({ where: { id } });
+  if (!asset) throw new NotFoundException('Asset not found');
+  if (asset.creatorProfileId !== creatorProfileId) {
+    throw new ForbiddenException('Not your asset');
   }
+
+  // Still keeping the safety check unless you want to delete sold items
+  if (asset._count.ownerships > 0) {
+    throw new BadRequestException('Cannot delete an asset that has been purchased.');
+  }
+
+  return this.prisma.$transaction(async (tx) => {
+    // 1. Delete relations without Cascade Delete
+    await tx.assetTag.deleteMany({ where: { assetId: id } });
+    await tx.ownership.deleteMany({ where: { assetId: id } });
+    await tx.claim.deleteMany({ where: { assetId: id } });
+    await tx.downloadLog.deleteMany({ where: { assetId: id } });
+
+    // 2. AssetFile has onDelete: Cascade, so it will be removed automatically
+    // when we delete the asset, but we can do it explicitly if preferred:
+    await tx.assetFile.deleteMany({ where: { assetId: id } });
+
+    // 3. Delete the actual asset
+    return tx.asset.delete({ where: { id } });
+  });
+}
 }
