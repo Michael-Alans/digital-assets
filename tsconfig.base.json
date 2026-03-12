@@ -1,0 +1,22 @@
+// tsconfig.base.json
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["esnext", "dom"],
+    "strict": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@design-assets/db": ["./packages/db/src"],
+      "@design-assets/shared": ["./packages/shared/src"]
+    },
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

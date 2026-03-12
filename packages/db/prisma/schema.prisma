@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+enum Role {
+  BUYER
+  CREATOR
+}
+
+enum AssetStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum FileKind {
+  PREVIEW
+  ZIP
+}
+
+model User {
+  id             String          @id @default(cuid())
+  clerkUserId    String          @unique
+  role           Role            @default(BUYER)
+  creatorProfile CreatorProfile?
+  ownerships     Ownership[]
+  claims         Claim[]
+  downloadLogs   DownloadLog[]
+  createdAt      DateTime        @default(now())
+}
+
+model CreatorProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+  assets Asset[]
+}
+
+model Asset {
+  id               String         @id @default(cuid())
+  creatorProfileId String
+  creatorProfile   CreatorProfile @relation(fields: [creatorProfileId], references: [id])
+  title            String
+  description      String
+  price            Decimal        @db.Decimal(10, 2) @default(0.00)
+  status           AssetStatus    @default(DRAFT)
+  files            AssetFile[]
+  tags             AssetTag[]
+  ownerships       Ownership[]
+  claims           Claim[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model AssetFile {
+  id          String   @id @default(cuid())
+  assetId     String
+  asset       Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  kind        FileKind
+  bucket      String
+  s3Key       String
+  contentType String
+  size        Int
+  createdAt   DateTime @default(now())
+
+  // Note: Application-level enforcement or a DB trigger is used 
+  // to ensure only one ZIP exists while allowing multiple PREVIEWS.
+  @@index([assetId])
+}
+
+model Tag {
+  id     String     @id @default(cuid())
+  name   String     @unique
+  assets AssetTag[]
+}
+
+model AssetTag {
+  assetId String
+  tagId   String
+  asset   Asset  @relation(fields: [assetId], references: [id])
+  tag     Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([assetId, tagId])
+}
+
+model Ownership {
+  userId  String
+  assetId String
+  user    User   @relation(fields: [userId], references: [id])
+  asset   Asset  @relation(fields: [assetId], references: [id])
+
+  @@id([userId, assetId])
+}
+
+model Claim {
+  id        String   @id @default(cuid())
+  userId    String
+  assetId   String
+  user      User     @relation(fields: [userId], references: [id])
+  asset     Asset    @relation(fields: [assetId], references: [id])
+  amount    Float
+  createdAt DateTime @default(now())
+}
+
+model DownloadLog {
+  id        String   @id @default(cuid())
+  userId    String
+  assetId   String
+  user      User     @relation(fields: [userId], references: [id])
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
