@@ -1,6 +1,6 @@
-import { Container } from "@components/layout/Container";
+import { Container } from "@/components/layout/Container";
 import { MyAssetsList } from "@/components/buyer/MyAssetsList";
-import { getMyAssets } from "@app/lib/actions/enrollment";
+import { getMyAssets } from "@/app/lib/actions/enrollment";
 import { Suspense } from "react";
 
 export default async function MyAssetsPage() {

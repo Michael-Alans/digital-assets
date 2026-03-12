@@ -3,9 +3,9 @@
 
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
-import { apiFetch } from "@app/lib/api/client";
-import { Asset } from "@app/lib/api/types";
-import { AssetCard } from "@components/assets/AssetCard";
+import { apiFetch } from "@/app/lib/api/client";
+import { Asset } from "@/app/lib/api/types";
+import { AssetCard } from "@/components/assets/AssetCard";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LoadingState } from "@/components/states/LoadingState";
 import { EmptyState } from "@/components/states/EmptyState";
