@@ -83,7 +83,7 @@ export default function AssetDetailsPage() {
                 )}
                 
                 <p className="text-[10px] text-center text-muted-foreground mt-4">
-                  Secure checkout powered by Clerk & Stripe
+                 
                 </p>
               </div>
             </div>
