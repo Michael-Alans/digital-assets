@@ -1,4 +1,3 @@
-// tsconfig.base.json
 {
   "compilerOptions": {
     "target": "ESNext",
@@ -13,6 +12,10 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./apps/web/*"],
+      "@/components/*": ["./apps/web/components/*"],
+      "@/app/*": ["./apps/web/app/*"],
+      "@/lib/*": ["./apps/web/lib/*"],
       "@design-assets/db": ["./packages/db/src"],
       "@design-assets/shared": ["./packages/shared/src"]
     },

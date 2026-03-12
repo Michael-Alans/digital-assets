@@ -2,10 +2,10 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import { useAssets } from "@app/lib/hooks/useAssets";
-import { AssetGrid } from "@components/assets/AssetGrid";
-import { SearchBar } from "@components/search/SearchBar";
-import { Container } from "@components/layout/Container";
+import { useAssets } from "@/app/lib/hooks/useAssets";
+import { AssetGrid } from "@/components/assets/AssetGrid";
+import { SearchBar } from "@/components/search/SearchBar";
+import { Container } from "@/components/layout/Container";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { LayoutGrid, ShieldCheck, Zap, Download } from "lucide-react"; // Icons for features

@@ -14,6 +14,17 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ES2022"
+    "target": "ES2022",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../../apps/web/*"],
+      "@/components/*": ["../../apps/web/components/*"],
+      "@/app/*": ["../../apps/web/app/*"],
+      "@/lib/*": ["../../apps/web/lib/*"],
+      "@app/*": ["../../apps/web/app/*"],
+      "@components/*": ["../../apps/web/components/*"],
+      "@design-assets/db": ["../db/src"],
+      "@design-assets/shared": ["../shared/src"]
+    }
   }
 }
