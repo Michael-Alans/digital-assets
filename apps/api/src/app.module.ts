@@ -1,3 +1,15 @@
+/**
+ * The root module for the application.
+ *
+ * This module configures global settings and aggregates all other feature modules.
+ * It uses `ConfigModule` for environment variable management, making it globally available.
+ *
+ * @module AppModule
+ * @remarks
+ * - **Imports**: `ConfigModule` (global), `AssetsModule`, `CreatorModule`, `S3Module`, `UsersModule`, `PrismaModule`, `PurchasesModule`.
+ * - **Controllers**: `AppController`.
+ * - **Providers**: `AppService`.
+ */
 import { ConfigModule } from '@nestjs/config';
 
 import { Module } from '@nestjs/common';
