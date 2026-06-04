@@ -5,6 +5,10 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@design-assets/db';
 import { UsersService } from '../users/users.service';
 
+/**
+ * Controller for managing creator profiles.
+ * This controller handles operations related to upgrading a user to a creator and fetching creator-specific profiles.
+ */
 @Controller('creator-profile')
 @UseGuards(ClerkAuthGuard, RolesGuard)
 export class CreatorController {
@@ -14,6 +18,14 @@ export class CreatorController {
 
 // src/creator/creator.controller.ts
 
+/**
+ * Creates or upgrades a user's profile to a creator profile.
+ * Requires the user to have a BUYER role initially.
+ *
+ * @param req The incoming request object, containing user information from Clerk.
+ * @returns A promise that resolves to the updated user profile, now with CREATOR role.
+ * @throws BadRequestException If the Clerk User ID is missing from the request context.
+ */
 @Post()
 @Roles(Role.BUYER)
 async createProfile(@Req() req) {
@@ -30,6 +42,13 @@ async createProfile(@Req() req) {
 
   return this.usersService.upgradeToCreator(userId, clerkId);
 }
+  /**
+   * Retrieves the profile of the currently authenticated creator.
+   * This endpoint is only accessible to users with the CREATOR role.
+   *
+   * @param req The incoming request object, containing user information.
+   * @returns A promise that resolves to the creator's profile data.
+   */
   @Get('me')
   @Roles(Role.CREATOR) // Only established creators should access this
   async getMyProfile(@Req() req) {
