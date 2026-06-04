@@ -3,6 +3,13 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
+/**
+ * Boots up the NestJS application.
+ *
+ * This function initializes the NestFactory, configures global pipes (like ValidationPipe),
+ * enables CORS for specified origins, and starts the application listening on a port
+ * defined by the environment variable `PORT` or defaults to 4000.
+ */
 async function bootstrap() {
   // Now process.env.DATABASE_URL will be populated
   const app = await NestFactory.create(AppModule);

@@ -1,9 +1,13 @@
-import { 
-  Controller, 
-  Post, 
-  Get, 
-  Param, 
-  Req, 
+/**
+ * Controller for managing asset-related operations, including creation, retrieval, ownership, and publishing.
+ * It handles requests from authenticated users, especially creators, and public asset browsing.
+ */
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Req,
   UseGuards,
   NotFoundException,
   Delete,
@@ -27,7 +31,13 @@ import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('assets')
 export class AssetsController {
-  
+
+  /**
+   * Initializes the AssetsController with necessary services.
+   * @param prisma - The Prisma service for database interactions.
+   * @param assetsService - The service responsible for core asset logic.
+   * @param s3 - The S3 service for interacting with AWS S3.
+   */
   constructor(
     private readonly prisma: PrismaService,
     private readonly assetsService: AssetsService,
@@ -37,6 +47,13 @@ export class AssetsController {
 
  // apps/api/src/assets/assets.controller.ts
 
+  /**
+   * Creates a new asset.
+   * Only users with the CREATOR role can create assets.
+   * @param dto - The data transfer object containing asset details.
+   * @param req - The request object, containing user information from ClerkAuthGuard.
+   * @returns The newly created asset.
+   */
 @Post()
 @UseGuards(ClerkAuthGuard, RolesGuard)
 @Roles(Role.CREATOR)
@@ -48,6 +65,15 @@ async create(@Body() dto: any, @Req() req) {
 
 // apps/api/src/assets/assets.controller.ts
 
+  /**
+   * Allows a user to claim ownership of an asset.
+   * This action typically corresponds to a purchase or acquisition.
+   * @param assetId - The unique identifier of the asset to claim.
+   * @param req - The request object, containing user information from ClerkAuthGuard.
+   * @returns The claim record, indicating successful ownership.
+   * @throws BadRequestException if the user already owns the asset.
+   * @throws NotFoundException if the asset does not exist.
+   */
 @Post(':id/claim')
 @UseGuards(ClerkAuthGuard)
 async claim(@Param('id') assetId: string, @Req() req) {
@@ -69,25 +95,30 @@ async claim(@Param('id') assetId: string, @Req() req) {
 
   return this.prisma.$transaction(async (tx) => {
     await tx.ownership.create({ data: { userId, assetId } });
-    
+
     return tx.claim.create({
-      data: { 
-        userId, 
+      data: {
+        userId,
         assetId,
         amount: Number(asset.price)
       }
     });
   });
 }
+  /**
+   * Retrieves all assets owned by the currently authenticated user.
+   * @param req - The request object, containing user information from ClerkAuthGuard.
+   * @returns A list of assets owned by the user, including creator profile and file details.
+   */
   @Get('me/library')
   @UseGuards(ClerkAuthGuard)
   async getLibrary(@Req() req) {
     console.log('User from Request:', req.user); // If this is undefined, the Guard is failing.
     return this.prisma.asset.findMany({
-      where: { 
-        ownerships: { 
-          some: { userId: req.user.id } 
-        } 
+      where: {
+        ownerships: {
+          some: { userId: req.user.id }
+        }
       },
       include: {
         // Fix: Changed 'creator' to 'creatorProfile' to match your schema
@@ -101,7 +132,12 @@ async claim(@Param('id') assetId: string, @Req() req) {
     });
   }
 
-  // PUBLIC: Browse all published assets
+  /**
+   * Retrieves all publicly published assets, with optional search and tag filters.
+   * @param search - Optional search string to filter assets by name or description.
+   * @param tag - Optional tag string to filter assets by associated tags.
+   * @returns A list of published assets.
+   */
   @Get()
   async findAll(@Query('search') search?: string, @Query('tag') tag?: string) {
     return this.assetsService.findPublished({ search, tag });
@@ -111,9 +147,17 @@ async claim(@Param('id') assetId: string, @Req() req) {
 
 // apps/api/src/assets/assets.controller.ts
 
+  /**
+   * Retrieves a single asset by its ID, providing public access.
+   * This endpoint includes creator details, ownership status for the requesting user (if authenticated),
+   * and associated files and tags.
+   * @param id - The unique identifier of the asset.
+   * @param req - The request object, optionally containing user information if authenticated.
+   * @returns The asset details, enriched with public information.
+   */
 @Get(':id')
 @Public()
-@UseGuards(ClerkAuthGuard) 
+@UseGuards(ClerkAuthGuard)
 async findOne(@Param('id') id: string, @Req() req) {
   // We call findOnePublic because it includes:
   // 1. Clerk Hydration (Real names/images)
@@ -122,7 +166,13 @@ async findOne(@Param('id') id: string, @Req() req) {
   return this.assetsService.findOnePublic(id, req.user?.id);
 }
 
-  // PROTECTED: Publish
+  /**
+   * Publishes an asset, making it publicly available.
+   * Only the asset's creator with the CREATOR role can publish their assets.
+   * @param id - The unique identifier of the asset to publish.
+   * @param req - The request object, containing user and creator profile information.
+   * @returns The updated asset with a PUBLISHED status.
+   */
   @Post(':id/publish')
   @UseGuards(ClerkAuthGuard, RolesGuard)
   @Roles(Role.CREATOR)
@@ -131,7 +181,13 @@ async findOne(@Param('id') id: string, @Req() req) {
     return this.assetsService.setStatus(id, req.user.creatorProfile.id, AssetStatus.PUBLISHED);
   }
 
-  // PROTECTED: Unpublish
+  /**
+   * Unpublishes an asset, changing its status back to DRAFT.
+   * Only the asset's creator with the CREATOR role can unpublish their assets.
+   * @param id - The unique identifier of the asset to unpublish.
+   * @param req - The request object, containing user and creator profile information.
+   * @returns The updated asset with a DRAFT status.
+   */
   @Post(':id/unpublish')
   @UseGuards(ClerkAuthGuard, RolesGuard)
   @Roles(Role.CREATOR)
@@ -139,7 +195,13 @@ async findOne(@Param('id') id: string, @Req() req) {
     return this.assetsService.setStatus(id, req.user.creatorProfile.id, AssetStatus.DRAFT);
   }
 
-  // PROTECTED: Delete
+  /**
+   * Deletes an asset.
+   * Only the asset's creator with the CREATOR role can delete their assets.
+   * @param id - The unique identifier of the asset to delete.
+   * @param req - The request object, containing user and creator profile information.
+   * @returns A void response with a 204 No Content status on successful deletion.
+   */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -148,12 +210,21 @@ async findOne(@Param('id') id: string, @Req() req) {
     return this.assetsService.remove(id, req.user.creatorProfile.id);
   }
 
+  /**
+   * Updates an existing asset's details.
+   * Only the asset's creator with the CREATOR role can update their assets.
+   * @param id - The unique identifier of the asset to update.
+   * @param updateAssetDto - The data transfer object containing the fields to update.
+   * @param req - The request object, containing user and creator profile information.
+   * @returns The updated asset.
+   * @throws ForbiddenException if the user has not completed creator onboarding.
+   */
   @Patch(':id')
 @UseGuards(ClerkAuthGuard, RolesGuard)
 @Roles(Role.CREATOR)
 async update(
-  @Param('id') id: string, 
-  @Body() updateAssetDto: any, 
+  @Param('id') id: string,
+  @Body() updateAssetDto: any,
   @Req() req
 ) {
   // 1. Defensively check for the profile
@@ -168,6 +239,15 @@ async update(
   // 2. Pass the ID to the service
   return this.assetsService.update(id, updateAssetDto, creatorProfileId);
 }
+  /**
+   * Generates a presigned URL for downloading an owned asset's ZIP file.
+   * Users must own the asset to be able to download it.
+   * @param assetId - The unique identifier of the asset to download.
+   * @param req - The request object, containing user information from ClerkAuthGuard.
+   * @returns An object containing the presigned URL for download.
+   * @throws ForbiddenException if the user does not own the asset.
+   * @throws NotFoundException if the ZIP file for the asset is not found.
+   */
   @Post(':id/download')
 @UseGuards(ClerkAuthGuard)
 async getDownloadUrl(@Param('id') assetId: string, @Req() req) {
@@ -185,10 +265,10 @@ async getDownloadUrl(@Param('id') assetId: string, @Req() req) {
 
   // 3. Log the download
   await this.prisma.downloadLog.create({
-    data: { 
-      userId: req.user.id, 
-      assetId, 
-      ipAddress: req.ip 
+    data: {
+      userId: req.user.id,
+      assetId,
+      ipAddress: req.ip
     }
   });
 
@@ -199,6 +279,11 @@ async getDownloadUrl(@Param('id') assetId: string, @Req() req) {
 
 // apps/api/src/assets/assets.controller.ts
 
+  /**
+   * Retrieves all assets created by the currently authenticated creator.
+   * @param req - The request object, containing user information from ClerkAuthGuard.
+   * @returns A list of assets created by the user.
+   */
 @Get('creator/me')
 @UseGuards(ClerkAuthGuard)
 async getMyAssets(@Request() req) {
