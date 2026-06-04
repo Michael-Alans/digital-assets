@@ -4,13 +4,56 @@ import { verifyToken } from '@clerk/backend';
 import { UsersService } from '../../users/users.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
+/**
+ * @typedef {import('@nestjs/common').CanActivate} CanActivate
+ * @typedef {import('@nestjs/common').ExecutionContext} ExecutionContext
+ * @typedef {import('@nestjs/core').Reflector} Reflector
+ * @typedef {import('../../users/users.service').UsersService} UsersService
+ */
+
+/**
+ * An authentication guard that uses Clerk for token verification.
+ *
+ * This guard checks for a Clerk JWT in the `Authorization` header.
+ * If a token is present and valid, it verifies it with Clerk,
+ * syncs the user with the application's user service, and attaches
+ * the user information to the request object.
+ *
+ * It also respects the `@Public()` decorator, allowing routes to bypass
+ * authentication, even if a token is absent or invalid.
+ */
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
+  /**
+   * Creates an instance of ClerkAuthGuard.
+   * @param {UsersService} usersService - The service for managing user data.
+   * @param {Reflector} reflector - The Reflector service to access metadata.
+   */
   constructor(
     private usersService: UsersService,
     private reflector: Reflector, // 👈 Inject Reflector
   ) {}
 
+  /**
+   * Determines if the current request should be allowed to proceed.
+   *
+   * This method performs the following steps:
+   * 1. Checks if the route is marked with the `@Public()` decorator.
+   * 2. Extracts the JWT from the `Authorization` header.
+   * 3. If no token is found:
+   *    - If the route is public, allows access (guest).
+   *    - Otherwise, throws an `UnauthorizedException`.
+   * 4. If a token is found, verifies it using Clerk.
+   * 5. If verification is successful, syncs the user with the database and
+   *    attaches the user object to the request.
+   * 6. If token verification fails:
+   *    - If the route is public, allows access (guest).
+   *    - Otherwise, throws an `UnauthorizedException`.
+   *
+   * @param {ExecutionContext} context - The current execution context.
+   * @returns {Promise<boolean>} A promise that resolves to `true` if the request is allowed,
+   *   or throws an `UnauthorizedException` otherwise.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // 1. Check if the route is marked as @Public()
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
