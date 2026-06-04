@@ -1,3 +1,7 @@
+/**
+ * Assets module.
+ * Manages the handling and serving of asset files, including integration with user management.
+ */
 // assets/assets.module.ts
 import { Module } from "@nestjs/common";
 import { AssetsController } from "./assets.controller";
